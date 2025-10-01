@@ -1,23 +1,23 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+// import { getFirestore } from "firebase/firestore"; // Uncomment if you use Firestore
+// import { getStorage } from "firebase/storage"; // Uncomment if you use Storage
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your web app's Firebase configuration, using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyCio8ggvjeAPlm1eugZQQKq2KNe6AJv_dA",
-  authDomain: "studybuddy-51723.firebaseapp.com",
-  projectId: "studybuddy-51723",
-  storageBucket: "studybuddy-51723.firebasestorage.app",
-  messagingSenderId: "852284732465",
-  appId: "1:852284732465:web:f64f4b538a855419051110",
-  measurementId: "G-JWKN3XJC6K"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Initialize and export Firebase services
 export const auth = getAuth(app);
+// export const db = getFirestore(app); // Uncomment if you use Firestore
+// export const storage = getStorage(app); // Uncomment if you use Storage
+export default app;

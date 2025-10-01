@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import HomePage from './pages/HomePage';
 import FocusPage from './pages/FocusPage';
@@ -22,22 +22,20 @@ const App: React.FC = () => {
     }, [theme]);
 
     return (
-        <Router>
-            <div className="d-flex">
-                <Sidebar toggleTheme={toggleTheme} />
-                <div className="flex-grow-1 p-4">
-                    <Routes>
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/signup" element={<SignupPage />} />
-                        <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                        <Route path="/focus" element={<ProtectedRoute><FocusPage /></ProtectedRoute>} />
-                        <Route path="/quizzes" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
-                        <Route path="/flashcards" element={<ProtectedRoute><FlashcardsPage /></ProtectedRoute>} />
-                        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-                    </Routes>
-                </div>
+        <div className="d-flex">
+            <Sidebar toggleTheme={toggleTheme} />
+            <div className="flex-grow-1 p-4">
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path="/focus" element={<ProtectedRoute><FocusPage /></ProtectedRoute>} />
+                    <Route path="/quizzes" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
+                    <Route path="/flashcards" element={<ProtectedRoute><FlashcardsPage /></ProtectedRoute>} />
+                    <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                </Routes>
             </div>
-        </Router>
+        </div>
     );
 };
 
