@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
             const data = await response.json();
 
             if (response.ok) {
-                login(data.token);
+                login(data.user, data.token);
                 navigate('/'); // Redirect to home page or dashboard
             } else {
                 setError(data.message || 'Login failed');
@@ -45,7 +45,7 @@ const LoginPage: React.FC = () => {
             const result = await signInWithPopup(auth, provider);
             const idToken = await result.user.getIdToken();
 
-            const response = await fetch('http://localhost:5000/api/auth/google', {
+            const response = await fetch('/api/auth/google', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
             const data = await response.json();
 
             if (response.ok) {
-                login(data.token);
+                login(data.user, data.token);
                 navigate('/');
             } else {
                 setError(data.message || 'Google Sign-In failed');

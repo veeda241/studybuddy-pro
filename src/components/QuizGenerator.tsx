@@ -8,40 +8,34 @@ interface QuizGeneratorProps {
 
 const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onQuizGenerated, onNotesSubmitted }) => {
     const [notes, setNotes] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const generateQuiz = () => {
+    const generateQuiz = async () => {
+        setLoading(true);
+        setError('');
         onNotesSubmitted(notes);
-        const questions = [];
-        const sentences = notes.split('.').filter(s => s.trim() !== '');
-        const keywords = ['React', 'TypeScript', 'JavaScript', 'Component', 'State'];
+        try {
+            const response = await fetch('/api/quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ notes }),
+            });
 
-        // Create a pool of sentences to be used as wrong answers
-        const sentencePool = [...sentences];
-
-        for (let i = 0; i < 5 && i < sentences.length; i++) {
-            const sentence = sentences[i];
-            const foundKeyword = keywords.find(kw => new RegExp(`\b${kw}\b`, 'i').test(sentence));
-            const keyword = foundKeyword || sentence.split(' ')[0];
-            
-            const answer = sentence;
-
-            // Remove the correct answer from the pool
-            const wrongAnswerPool = sentencePool.filter(s => s !== answer);
-            
-            // Get 3 random wrong answers
-            const wrongAnswers = wrongAnswerPool.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-            const options = [answer, ...wrongAnswers].sort(() => 0.5 - Math.random());
-
-            if (options.length > 1) { // Only add question if there are options
-                questions.push({
-                    question: `What is ${keyword}?`,
-                    options: options,
-                    answer: answer
-                });
+            if (!response.ok) {
+                throw new Error('Failed to fetch quiz');
             }
+
+            const data = await response.json();
+            onQuizGenerated(data);
+
+        } catch (err) {
+            setError('Failed to generate quiz. Please try again.');
+            console.error('Quiz generation error:', err);
         }
-        onQuizGenerated(questions);
+        setLoading(false);
     };
 
     return (
@@ -55,7 +49,10 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onQuizGenerated, onNotesS
                     onChange={e => setNotes(e.target.value)}
                 />
             </Form.Group>
-            <Button onClick={generateQuiz}>Generate Quiz</Button>
+            <Button onClick={generateQuiz} disabled={!notes || loading}>
+                {loading ? 'Generating...' : 'Generate Quiz'}
+            </Button>
+            {error && <p style={{ color: 'red' }} className="mt-2">{error}</p>}
         </div>
     );
 };

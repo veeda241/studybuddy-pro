@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
 
 interface FlashcardGeneratorProps {
@@ -7,27 +7,41 @@ interface FlashcardGeneratorProps {
 }
 
 const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({ notes, onFlashcardsGenerated }) => {
-    const generateFlashcards = () => {
-        const flashcards = [];
-        const sentences = notes.split('.').filter(s => s.trim() !== '');
-        const keywords = ['React', 'TypeScript', 'JavaScript', 'Component', 'State'];
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-        for (let i = 0; i < 5 && i < sentences.length; i++) {
-            const sentence = sentences[i];
-            const foundKeyword = keywords.find(kw => new RegExp(`\b${kw}\b`, 'i').test(sentence));
-            const keyword = foundKeyword || sentence.split(' ')[0];
-
-            flashcards.push({
-                question: `What is ${keyword}?`,
-                answer: sentence
+    const generateFlashcards = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const response = await fetch('/api/flashcards', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ notes }),
             });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch flashcards');
+            }
+
+            const data = await response.json();
+            onFlashcardsGenerated(data);
+
+        } catch (err) {
+            setError('Failed to generate flashcards. Please try again.');
+            console.error('Flashcard generation error:', err);
         }
-        onFlashcardsGenerated(flashcards);
+        setLoading(false);
     };
 
     return (
         <div>
-            <Button onClick={generateFlashcards} disabled={!notes}>Generate Flashcards from Notes</Button>
+            <Button onClick={generateFlashcards} disabled={!notes || loading}>
+                {loading ? 'Generating...' : 'Generate Flashcards from Notes'}
+            </Button>
+            {error && <p style={{ color: 'red' }} className="mt-2">{error}</p>}
         </div>
     );
 };

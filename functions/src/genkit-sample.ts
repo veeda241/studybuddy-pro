@@ -76,3 +76,76 @@ export const menuSuggestion = onCallGenkit({
   // Grant access to the API key to this function:
   secrets: [apiKey],
 }, menuSuggestionFlow);
+
+
+// Flow for summarizing notes
+export const summarizeNotesFlow = ai.defineFlow(
+  {
+    name: "summarizeNotesFlow",
+    inputSchema: z.string().describe("The notes to be summarized"),
+    outputSchema: z.string(),
+  },
+  async (notes) => {
+    const { response } = await ai.generate({
+      model: gemini20Flash,
+      prompt: `Summarize the following notes for a student, highlighting the key concepts: ${notes}`,
+      config: { temperature: 0.5 },
+    });
+    return response.text;
+  }
+);
+
+export const summarizeNotes = onCallGenkit({ secrets: [apiKey] }, summarizeNotesFlow);
+
+
+// Flow for generating flashcards
+const flashcardSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+});
+
+export const generateFlashcardsFlow = ai.defineFlow(
+  {
+    name: "generateFlashcardsFlow",
+    inputSchema: z.string().describe("The notes to generate flashcards from"),
+    outputSchema: z.array(flashcardSchema),
+  },
+  async (notes) => {
+    const { response } = await ai.generate({
+      model: gemini20Flash,
+      prompt: `Generate 5 flashcards from the following notes. Each flashcard should have a 'question' and an 'answer'. Return the output as a valid JSON array of objects: ${notes}`,
+      config: { temperature: 0.7 },
+      responseFormat: "json",
+    });
+    return response.json();
+  }
+);
+
+export const generateFlashcards = onCallGenkit({ secrets: [apiKey] }, generateFlashcardsFlow);
+
+
+// Flow for generating a quiz
+const quizQuestionSchema = z.object({
+  question: z.string(),
+  options: z.array(z.string()),
+  answer: z.string(),
+});
+
+export const generateQuizFlow = ai.defineFlow(
+  {
+    name: "generateQuizFlow",
+    inputSchema: z.string().describe("The notes to generate a quiz from"),
+    outputSchema: z.array(quizQuestionSchema),
+  },
+  async (notes) => {
+    const { response } = await ai.generate({
+      model: gemini20Flash,
+      prompt: `Generate a 5-question multiple-choice quiz from the following notes. Each question should have a 'question', an array of 4 'options', and an 'answer'. Ensure one of the options is the correct answer. Return the output as a valid JSON array of objects: ${notes}`,
+      config: { temperature: 0.7 },
+      responseFormat: "json",
+    });
+    return response.json();
+  }
+);
+
+export const generateQuiz = onCallGenkit({ secrets: [apiKey] }, generateQuizFlow);

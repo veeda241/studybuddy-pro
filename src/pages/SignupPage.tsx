@@ -17,7 +17,7 @@ const SignupPage: React.FC = () => {
         setSuccess('');
 
         try {
-            const response = await fetch('http://localhost:5000/api/register', {
+            const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ const SignupPage: React.FC = () => {
 
             if (response.ok) {
                 setSuccess(data.message || 'Registration successful!');
-                login(data.token);
+                login(data.user, data.token);
                 navigate('/'); // Redirect to home page or dashboard
             } else {
                 setError(data.message || 'Registration failed');
