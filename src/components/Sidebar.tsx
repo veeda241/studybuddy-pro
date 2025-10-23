@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { House, Bullseye, CardList, JournalText, Gear, Sun, Moon, Coin } from 'react-bootstrap-icons';
+import { House, Bullseye, CardList, JournalText, Gear, Sun, Moon, Coin, Mortarboard } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -12,9 +12,10 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleTheme }) => {
 
     return (
         <div className="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style={{ width: '280px', height: '100vh' }}>
-            <a href="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <NavLink to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                <Mortarboard className="me-2" size={32} />
                 <span className="fs-4">StudyBuddy Pro</span>
-            </a>
+            </NavLink>
             <hr />
             <ul className="nav nav-pills flex-column mb-auto">
                 <li className="nav-item">

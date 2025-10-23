@@ -15,6 +15,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     user: User | null;
     token: string | null;
+    isLoading: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
     updateUser: (updatedData: Partial<User>) => void;
@@ -25,15 +26,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        // On initial load, try to get user data from localStorage
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+        try {
+            const storedToken = localStorage.getItem('token');
+            const storedUser = localStorage.getItem('user');
+            if (storedToken && storedUser) {
+                setToken(storedToken);
+                setUser(JSON.parse(storedUser));
+            }
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
@@ -63,7 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const isAuthenticated = !!token && !!user;
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout, updateUser }}>
+        <AuthContext.Provider value={{ isAuthenticated, user, token, isLoading, login, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

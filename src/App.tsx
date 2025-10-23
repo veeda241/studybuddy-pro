@@ -10,8 +10,11 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import { useAuth } from './context/AuthContext';
+
 const App: React.FC = () => {
     const [theme, setTheme] = useState('light');
+    const { isAuthenticated, isLoading } = useAuth();
 
     const toggleTheme = () => {
         setTheme(theme === 'light' ? 'dark' : 'light');
@@ -21,10 +24,14 @@ const App: React.FC = () => {
         document.body.setAttribute('data-bs-theme', theme);
     }, [theme]);
 
+    if (isLoading) {
+        return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>Loading...</div>;
+    }
+
     return (
-        <div className="d-flex">
-            <Sidebar toggleTheme={toggleTheme} />
-            <div className="flex-grow-1 p-4">
+        <div className={isAuthenticated ? "d-flex" : ""}>
+            {isAuthenticated && <Sidebar toggleTheme={toggleTheme} />}
+            <div className={isAuthenticated ? "flex-grow-1 p-4" : ""}>
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />

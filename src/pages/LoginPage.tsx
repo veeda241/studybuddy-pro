@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
+import { Mortarboard } from 'react-bootstrap-icons';
 import { useNavigate } from 'react-router-dom';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -39,38 +38,14 @@ const LoginPage: React.FC = () => {
         }
     };
 
-    const handleGoogleSignIn = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const idToken = await result.user.getIdToken();
-
-            const response = await fetch('/api/auth/google', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token: idToken }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                login(data.user, data.token);
-                navigate('/');
-            } else {
-                setError(data.message || 'Google Sign-In failed');
-            }
-        } catch (error) {
-            setError('Failed to sign in with Google.');
-            console.error('Google Sign-In error:', error);
-        }
-    };
-
     return (
         <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
             <Card style={{ width: '400px' }}>
                 <Card.Body>
+                    <div className="text-center mb-4">
+                        <Mortarboard size={40} />
+                        <h1 className="mt-2">StudyBuddy Pro</h1>
+                    </div>
                     <h2 className="text-center mb-4">Login</h2>
                     {error && <Alert variant="danger">{error}</Alert>}
                     <Form onSubmit={handleSubmit}>
@@ -100,9 +75,6 @@ const LoginPage: React.FC = () => {
                             Login
                         </Button>
                     </Form>
-                    <Button variant="danger" onClick={handleGoogleSignIn} className="w-100 mt-3">
-                        Sign in with Google
-                    </Button>
                     <p className="text-center mt-3">
                         Don't have an account? <a href="/signup">Sign Up</a>
                     </p>

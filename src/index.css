@@ -5,6 +5,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+  background-attachment: fixed;
+  color: #212529;
+}
+
+body[data-bs-theme="dark"] {
+  background: linear-gradient(to bottom right, #212529, #343a40);
+  color: #f8f9fa;
 }
 
 code {

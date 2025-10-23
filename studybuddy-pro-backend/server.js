@@ -3,9 +3,18 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
+
+// Ensure user_settings directory exists
+const settingsDir = path.join(__dirname, 'user_settings');
+if (!fs.existsSync(settingsDir)) {
+    fs.mkdirSync(settingsDir);
+}
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // --- CONFIGURATIONS ---
 const PORT = process.env.PORT || 5000;
@@ -85,6 +94,48 @@ app.post('/api/login', (req, res) => {
         const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
         res.status(200).json({ message: 'Logged in successfully', token, user });
     });
+});
+
+app.post('/api/auth/google', async (req, res) => {
+    const { token } = req.body;
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const username = payload.name;
+
+        db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
+            if (err) {
+                return res.status(500).json({ message: "Server error finding user." });
+            }
+
+            if (user) {
+                // User exists, log them in
+                const jwtToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+                res.status(200).json({ message: 'Logged in successfully', token: jwtToken, user });
+            } else {
+                // User does not exist, create a new one
+                const sql = 'INSERT INTO users (username, coins, xp, streak) VALUES (?, 0, 0, 0)';
+                db.run(sql, [username], function(err) {
+                    if (err) {
+                        return res.status(500).json({ message: "Server error creating user." });
+                    }
+                    const userId = this.lastID;
+                    const jwtToken = jwt.sign({ id: userId, username }, JWT_SECRET, { expiresIn: '1h' });
+                    db.get('SELECT * FROM users WHERE id = ?', [userId], (err, newUser) => {
+                        if (err || !newUser) {
+                            return res.status(500).json({ message: "Error fetching new user." });
+                        }
+                        res.status(201).json({ message: 'User created and logged in', token: jwtToken, user: newUser });
+                    });
+                });
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ message: 'Invalid Google token.' });
+    }
 });
 
 // --- GAMIFICATION ROUTES ---
@@ -203,6 +254,39 @@ app.post('/api/quiz', (req, res) => {
         });
     }
     res.status(200).json(questions);
+    });
+});
+
+// --- USER SETTINGS ROUTES (JSON file-based) ---
+
+app.get('/api/settings/:userId', (req, res) => {
+    const { userId } = req.params;
+    const settingsPath = path.join(settingsDir, `${userId}.json`);
+
+    if (fs.existsSync(settingsPath)) {
+        fs.readFile(settingsPath, 'utf8', (err, data) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error reading settings.' });
+            }
+            res.status(200).json(JSON.parse(data));
+        });
+    } else {
+        // Return default/empty settings if file doesn't exist
+        res.status(200).json({ name: '', studyGoals: '' });
+    }
+});
+
+app.post('/api/settings/:userId', (req, res) => {
+    const { userId } = req.params;
+    const settingsPath = path.join(settingsDir, `${userId}.json`);
+    const settingsData = JSON.stringify(req.body, null, 2);
+
+    fs.writeFile(settingsPath, settingsData, 'utf8', (err) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error saving settings.' });
+        }
+        res.status(200).json({ message: 'Settings saved successfully.' });
+    });
 });
 
 
