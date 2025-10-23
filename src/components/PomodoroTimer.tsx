@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,7 +29,7 @@ const PomodoroTimer: React.FC = () => {
         localStorage.setItem('pomodoroBreakDuration', breakDuration.toString());
     }, [workDuration, breakDuration]);
 
-    const handleSessionComplete = async () => {
+    const handleSessionComplete = useCallback(async () => {
         if (!user) return;
 
         try {
@@ -52,38 +52,7 @@ const PomodoroTimer: React.FC = () => {
         } catch (error) {
             console.error("Failed to update user stats:", error);
         }
-    };
-
-    useEffect(() => {
-        let interval: NodeJS.Timeout | null = null;
-
-        if (isActive) {
-            interval = setInterval(() => {
-                if (seconds > 0) {
-                    setSeconds(seconds - 1);
-                } else if (minutes > 0) {
-                    setMinutes(minutes - 1);
-                    setSeconds(59);
-                } else {
-                    // Timer finished
-                    if (timerType === 'pomodoro') {
-                        handleSessionComplete();
-                        setTimerType('break');
-                        alert('Time for a break!');
-                    } else {
-                        setTimerType('pomodoro');
-                        alert('Break is over! Back to work.');
-                    }
-                    setIsActive(false);
-                }
-            }, 1000);
-        } else if (!isActive && seconds !== 0) {
-            if(interval) clearInterval(interval);
-        }
-        return () => {
-            if(interval) clearInterval(interval)
-        };
-    }, [isActive, seconds, minutes, timerType, workDuration, breakDuration, user, updateUser]);
+    }, [user, updateUser]);
 
     const toggle = () => {
         setIsActive(!isActive);
