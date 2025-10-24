@@ -54,6 +54,37 @@ const PomodoroTimer: React.FC = () => {
         }
     }, [user, updateUser]);
 
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+
+        if (isActive) {
+            interval = setInterval(() => {
+                if (seconds > 0) {
+                    setSeconds(seconds - 1);
+                } else if (minutes > 0) {
+                    setMinutes(minutes - 1);
+                    setSeconds(59);
+                } else {
+                    // Timer finished
+                    if (timerType === 'pomodoro') {
+                        handleSessionComplete();
+                        setTimerType('break');
+                        alert('Time for a break!');
+                    } else {
+                        setTimerType('pomodoro');
+                        alert('Break is over! Back to work.');
+                    }
+                    setIsActive(false);
+                }
+            }, 1000);
+        } else if (!isActive && seconds !== 0) {
+            if(interval) clearInterval(interval);
+        }
+        return () => {
+            if(interval) clearInterval(interval)
+        };
+    }, [isActive, seconds, minutes, timerType, workDuration, breakDuration, user, updateUser, handleSessionComplete]);
+
     const toggle = () => {
         setIsActive(!isActive);
     };
@@ -123,4 +154,3 @@ const PomodoroTimer: React.FC = () => {
 };
 
 export default PomodoroTimer;
-
