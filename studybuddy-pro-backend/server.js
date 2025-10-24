@@ -14,6 +14,7 @@ const settingsDir = path.join(__dirname, 'user_settings');
 if (!fs.existsSync(settingsDir)) {
     fs.mkdirSync(settingsDir);
 }
+const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // --- CONFIGURATIONS ---
@@ -290,10 +291,12 @@ app.post('/api/settings/:userId', (req, res) => {
 });
 
 
-// --- SERVER STARTUP ---
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// --- SERVER STARTUP (for local development) ---
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
 
 // Graceful shutdown
 process.on('SIGINT', () => {
