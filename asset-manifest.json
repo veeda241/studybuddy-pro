@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/studybuddy-pro/static/css/main.7975b654.css",
+    "main.js": "/studybuddy-pro/static/js/main.093caab8.js",
+    "static/js/453.cc9fc4fc.chunk.js": "/studybuddy-pro/static/js/453.cc9fc4fc.chunk.js",
+    "index.html": "/studybuddy-pro/index.html",
+    "main.7975b654.css.map": "/studybuddy-pro/static/css/main.7975b654.css.map",
+    "main.093caab8.js.map": "/studybuddy-pro/static/js/main.093caab8.js.map",
+    "453.cc9fc4fc.chunk.js.map": "/studybuddy-pro/static/js/453.cc9fc4fc.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7975b654.css",
+    "static/js/main.093caab8.js"
+  ]
+}
