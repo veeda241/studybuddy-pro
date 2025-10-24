@@ -52,7 +52,7 @@ const PomodoroTimer: React.FC = () => {
         } catch (error) {
             console.error("Failed to update user stats:", error);
         }
-    }, [user, updateUser, handleSessionComplete]);
+    }, [user, updateUser]);
 
     const toggle = () => {
         setIsActive(!isActive);
