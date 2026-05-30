@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../api';
 
 const PomodoroTimer: React.FC = () => {
     const { user, updateUser } = useAuth();
@@ -33,7 +34,7 @@ const PomodoroTimer: React.FC = () => {
         if (!user) return;
 
         try {
-            const response = await fetch('/api/pomodoro/complete', {
+            const response = await apiFetch('/api/pomodoro/complete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -113,10 +114,13 @@ const PomodoroTimer: React.FC = () => {
     };
 
     return (
-        <div className="text-center">
-            <h3>Pomodoro Timer</h3>
-            <div className="mb-3">
-                <InputGroup className="mb-2">
+        <section className="tool-panel timer-panel">
+            <div className="section-title">
+                <span className="eyebrow">Timer</span>
+                <h2>Pomodoro Timer</h2>
+            </div>
+            <div className="duration-grid">
+                <InputGroup>
                     <InputGroup.Text>Work (min)</InputGroup.Text>
                     <Form.Control
                         type="number"
@@ -137,19 +141,19 @@ const PomodoroTimer: React.FC = () => {
                     />
                 </InputGroup>
             </div>
-            <div style={{ fontSize: '6rem', margin: '20px 0' }}>
+            <div className="timer-display">
                 {minutes < 10 ? `0${minutes}` : minutes}:{
                 seconds < 10 ? `0${seconds}` : seconds}
             </div>
-            <div>
-                <Button onClick={toggle} variant={isActive ? 'warning' : 'primary'} className="me-2">
+            <div className="button-row">
+                <Button onClick={toggle} variant={isActive ? 'warning' : 'primary'}>
                     {isActive ? 'Pause' : 'Start'}
                 </Button>
                 <Button onClick={reset} variant="secondary">
                     Reset
                 </Button>
             </div>
-        </div>
+        </section>
     );
 };
 

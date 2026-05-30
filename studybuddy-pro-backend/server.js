@@ -199,10 +199,35 @@ const getKeywords = (text, count = 5) => {
     return Object.keys(freq).sort((a, b) => freq[b] - freq[a]).slice(0, count);
 };
 
+const splitNotes = (notes) => {
+    const cleaned = String(notes || '')
+        .replace(/\r/g, '\n')
+        .split(/\n+/)
+        .flatMap(line => line.split(/(?<=[.!?])\s+/))
+        .map(part => part.replace(/^\s*[-*•\d.)]+\s*/, '').trim())
+        .filter(Boolean);
+
+    if (cleaned.length > 1) return cleaned;
+
+    return String(notes || '')
+        .split(/[.!?;]+|,(?=\s+[A-Z])/)
+        .map(part => part.replace(/^\s*[-*•\d.)]+\s*/, '').trim())
+        .filter(Boolean);
+};
+
+const makeKeywordOptions = (keywords, answer) => {
+    const fallback = ['definition', 'example', 'timeline', 'formula', 'contrast', 'summary'];
+    const options = [answer, ...keywords.filter(keyword => keyword !== answer), ...fallback]
+        .filter((option, index, list) => option && list.indexOf(option) === index)
+        .slice(0, 4);
+
+    return options.sort(() => 0.5 - Math.random());
+};
+
 app.post('/api/summarize', (req, res) => {
     const { notes } = req.body;
     if (!notes) return res.status(400).json({ message: 'Notes are required' });
-    const sentences = notes.match(/[^.!?]+[.!?]+/g) || [];
+    const sentences = splitNotes(notes);
     const summary = sentences.slice(0, 2).join(' ');
     res.status(200).json({ content: summary });
 });
@@ -211,8 +236,8 @@ app.post('/api/flashcards', (req, res) => {
     const { notes } = req.body;
     if (!notes) return res.status(400).json({ message: 'Notes are required' });
 
-    const sentences = notes.match(/[^.!?]+[.!?]+/g) || [];
-    const keywords = getKeywords(notes, sentences.length);
+    const sentences = splitNotes(notes);
+    const keywords = getKeywords(notes, Math.max(sentences.length, 5));
     const flashcards = [];
 
     for (const keyword of keywords) {
@@ -228,12 +253,13 @@ app.post('/api/quiz', (req, res) => {
     const { notes } = req.body;
     if (!notes) return res.status(400).json({ message: 'Notes are required' });
 
-    const sentences = notes.match(/[^.!?]+[.!?]+/g) || [];
-    if (sentences.length < 4) {
-        return res.status(400).json({ message: 'Not enough content to generate a quiz. Please provide at least 4 sentences.' });
+    const sentences = splitNotes(notes);
+    const keywords = getKeywords(notes, Math.max(sentences.length, 6));
+
+    if (!sentences.length || !keywords.length) {
+        return res.status(400).json({ message: 'Add a little more detail so StudyBuddy can build questions.' });
     }
 
-    const keywords = getKeywords(notes, sentences.length);
     const questions = [];
 
     for (let i = 0; i < Math.min(keywords.length, 5); i++) {
@@ -243,8 +269,15 @@ app.post('/api/quiz', (req, res) => {
 
         const otherSentences = sentences.filter(s => s !== answerSentence);
         const wrongOptions = otherSentences.sort(() => 0.5 - Math.random()).slice(0, 3).map(s => s.trim());
-        
-        if (wrongOptions.length < 3) continue;
+
+        if (wrongOptions.length < 3) {
+            questions.push({
+                question: `Which key term is connected to this note: "${answerSentence.trim()}"?`,
+                options: makeKeywordOptions(keywords, keyword),
+                answer: keyword
+            });
+            continue;
+        }
 
         const options = [answerSentence.trim(), ...wrongOptions].sort(() => 0.5 - Math.random());
 
@@ -254,8 +287,12 @@ app.post('/api/quiz', (req, res) => {
             answer: answerSentence.trim()
         });
     }
+
+    if (!questions.length) {
+        return res.status(400).json({ message: 'Add a little more detail so StudyBuddy can build questions.' });
+    }
+
     res.status(200).json(questions);
-    });
 });
 
 // --- USER SETTINGS ROUTES (JSON file-based) ---

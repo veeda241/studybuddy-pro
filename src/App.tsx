@@ -25,13 +25,20 @@ const App: React.FC = () => {
     }, [theme]);
 
     if (isLoading) {
-        return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>Loading...</div>;
+        return (
+            <div className="app-loading">
+                <div className="loading-card">
+                    <div className="loading-mark" />
+                    <span>Loading your workspace...</span>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className={isAuthenticated ? "d-flex" : ""}>
+        <div className={isAuthenticated ? "app-shell" : "auth-shell"}>
             {isAuthenticated && <Sidebar toggleTheme={toggleTheme} />}
-            <div className={isAuthenticated ? "flex-grow-1 p-4" : ""}>
+            <main className={isAuthenticated ? "app-main" : "auth-main"}>
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />
@@ -41,7 +48,7 @@ const App: React.FC = () => {
                     <Route path="/flashcards" element={<ProtectedRoute><FlashcardsPage /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                 </Routes>
-            </div>
+            </main>
         </div>
     );
 };

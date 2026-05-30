@@ -38,21 +38,21 @@ const FlashcardPlayer: React.FC<FlashcardPlayerProps> = ({ flashcards, onShuffle
     const progress = ((currentIndex + 1) / flashcards.length) * 100;
 
     return (
-        <div>
-            <Card onClick={() => setIsFlipped(!isFlipped)} style={{ minHeight: '200px', cursor: 'pointer' }}>
+        <section className="flashcard-panel">
+            <Card onClick={() => setIsFlipped(!isFlipped)} className="flashcard">
                 <Card.Body className="d-flex justify-content-center align-items-center">
-                    <Card.Text style={{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transition: 'transform 0.6s' }}>
+                    <Card.Text className={isFlipped ? 'flipped' : ''}>
                         {isFlipped ? flashcards[currentIndex].answer : flashcards[currentIndex].question}
                     </Card.Text>
                 </Card.Body>
             </Card>
-            <div className="mt-3">
-                <Button onClick={handlePrev} className="me-2">Previous</Button>
-                <Button onClick={handleNext} className="me-2">Next</Button>
+            <div className="button-row mt-3">
+                <Button onClick={handlePrev}>Previous</Button>
+                <Button onClick={handleNext}>Next</Button>
                 <Button onClick={shuffle}>Shuffle</Button>
             </div>
             <ProgressBar now={progress} label={`${Math.round(progress)}%`} className="mt-3" />
-        </div>
+        </section>
     );
 };
 

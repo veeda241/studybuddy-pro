@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mortarboard } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../api';
 
 const SignupPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -17,7 +19,7 @@ const SignupPage: React.FC = () => {
         setSuccess('');
 
         try {
-            const response = await fetch('/api/register', {
+            const response = await apiFetch('/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,10 +43,14 @@ const SignupPage: React.FC = () => {
     };
 
     return (
-        <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-            <Card style={{ width: '400px' }}>
+        <Container className="auth-page">
+            <Card className="auth-card">
                 <Card.Body>
-                    <h2 className="text-center mb-4">Sign Up</h2>
+                    <div className="text-center mb-4">
+                        <span className="auth-icon"><Mortarboard size={34} /></span>
+                        <h1 className="mt-3">Create Account</h1>
+                        <p className="text-muted">Start tracking your focus, quizzes, and flashcards.</p>
+                    </div>
                     {error && <Alert variant="danger">{error}</Alert>}
                     {success && <Alert variant="success">{success}</Alert>}
                     <Form onSubmit={handleSubmit}>
@@ -75,7 +81,7 @@ const SignupPage: React.FC = () => {
                         </Button>
                     </Form>
                     <p className="text-center mt-3">
-                        Already have an account? <a href="/login">Login</a>
+                        Already have an account? <Link to="/login">Login</Link>
                     </p>
                 </Card.Body>
             </Card>

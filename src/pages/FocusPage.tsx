@@ -5,12 +5,17 @@ import TodoList from '../components/TodoList';
 
 const FocusPage: React.FC = () => {
     return (
-        <Container fluid>
-            <Row>
-                <Col md={6}>
+        <Container fluid className="page-wrap">
+            <div className="page-heading">
+                <span className="eyebrow">Deep work</span>
+                <h1>Focus Mode</h1>
+                <p>Plan a small set of tasks, run a sprint, and collect progress as you go.</p>
+            </div>
+            <Row className="g-4 align-items-start">
+                <Col lg={6}>
                     <PomodoroTimer />
                 </Col>
-                <Col md={6}>
+                <Col lg={6}>
                     <TodoList />
                 </Col>
             </Row>

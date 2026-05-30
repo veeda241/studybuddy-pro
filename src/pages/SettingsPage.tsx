@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Col, Container, Form, Row, Alert } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../api';
 
 const SettingsPage: React.FC = () => {
     const { user } = useAuth();
@@ -10,7 +11,7 @@ const SettingsPage: React.FC = () => {
 
     useEffect(() => {
         if (user) {
-            fetch(`/api/settings/${user.id}`)
+            apiFetch(`/api/settings/${user.id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data) {
@@ -25,7 +26,7 @@ const SettingsPage: React.FC = () => {
     const handleSave = async () => {
         if (!user) return;
         try {
-            const response = await fetch(`/api/settings/${user.id}`, {
+            const response = await apiFetch(`/api/settings/${user.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,12 +48,16 @@ const SettingsPage: React.FC = () => {
     };
 
     return (
-        <Container fluid>
-            <h3>Settings</h3>
+        <Container fluid className="page-wrap">
+            <div className="page-heading">
+                <span className="eyebrow">Personalize</span>
+                <h1>Settings</h1>
+                <p>Keep your study profile and goals aligned with what you are working toward.</p>
+            </div>
             {message && <Alert variant="success" onClose={() => setMessage('')} dismissible>{message}</Alert>}
-            <Row>
-                <Col md={6}>
-                    <Card className="mb-3">
+            <Row className="g-4">
+                <Col lg={7}>
+                    <Card className="tool-panel mb-3">
                         <Card.Body>
                             <Card.Title>User Profile</Card.Title>
                             <Form>
@@ -79,7 +84,7 @@ const SettingsPage: React.FC = () => {
                             </Form>
                         </Card.Body>
                     </Card>
-                    <Card>
+                    <Card className="tool-panel danger-panel">
                         <Card.Body>
                             <Card.Title>Reset Application</Card.Title>
                             <Card.Text>
@@ -89,12 +94,13 @@ const SettingsPage: React.FC = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={6}>
-                    <Card>
+                <Col lg={5}>
+                    <Card className="tool-panel">
                         <Card.Body>
                             <Card.Title>Gamification</Card.Title>
-                            <p>XP: 120</p>
-                            <p>Streak: 5 days</p>
+                            <div className="settings-stat"><span>XP</span><strong>{user?.xp || 0}</strong></div>
+                            <div className="settings-stat"><span>Streak</span><strong>{user?.streak || 0} days</strong></div>
+                            <div className="settings-stat"><span>Coins</span><strong>{user?.coins || 0}</strong></div>
                         </Card.Body>
                     </Card>
                 </Col>

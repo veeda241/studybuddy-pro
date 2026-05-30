@@ -9,14 +9,25 @@ const QuizPage: React.FC = () => {
     const [notes, setNotes] = useState('');
 
     return (
-        <Container fluid>
-            <Row>
-                <Col md={6}>
+        <Container fluid className="page-wrap">
+            <div className="page-heading">
+                <span className="eyebrow">Active recall</span>
+                <h1>Smart Quizzes</h1>
+                <p>Paste notes once, then generate questions and a quick summary for review.</p>
+            </div>
+            <Row className="g-4 align-items-start">
+                <Col lg={6}>
                     <QuizGenerator onQuizGenerated={setQuestions} onNotesSubmitted={setNotes} />
                 </Col>
-                <Col md={6}>
+                <Col lg={6}>
                     {notes && <NoteSummarizer notes={notes} />}
                     {questions.length > 0 && <Quiz questions={questions} />}
+                    {!notes && questions.length === 0 && (
+                        <div className="empty-state">
+                            <strong>Your quiz preview will appear here.</strong>
+                            <span>Add notes to generate a summary and questions.</span>
+                        </div>
+                    )}
                 </Col>
             </Row>
         </Container>

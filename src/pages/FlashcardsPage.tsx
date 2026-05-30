@@ -8,22 +8,37 @@ const FlashcardsPage: React.FC = () => {
     const [flashcards, setFlashcards] = useState<any[]>([]);
 
     return (
-        <Container fluid>
-            <Row>
-                <Col md={6}>
-                    <Form.Group className="mb-3">
-                        <Form.Control
-                            as="textarea"
-                            rows={10}
-                            placeholder="Paste your notes here to generate flashcards..."
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                        />
-                    </Form.Group>
-                    <FlashcardGenerator notes={notes} onFlashcardsGenerated={setFlashcards} />
+        <Container fluid className="page-wrap">
+            <div className="page-heading">
+                <span className="eyebrow">Memory practice</span>
+                <h1>Flashcards</h1>
+                <p>Create quick cards from your notes and review them one at a time.</p>
+            </div>
+            <Row className="g-4 align-items-start">
+                <Col lg={6}>
+                    <div className="tool-panel">
+                        <Form.Group className="mb-3">
+                            <Form.Label>Notes</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={10}
+                                placeholder="Paste your notes here to generate flashcards..."
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                            />
+                        </Form.Group>
+                        <FlashcardGenerator notes={notes} onFlashcardsGenerated={setFlashcards} />
+                    </div>
                 </Col>
-                <Col md={6}>
-                    {flashcards.length > 0 && <FlashcardPlayer flashcards={flashcards} onShuffle={setFlashcards} />}
+                <Col lg={6}>
+                    {flashcards.length > 0 ? (
+                        <FlashcardPlayer flashcards={flashcards} onShuffle={setFlashcards} />
+                    ) : (
+                        <div className="empty-state">
+                            <strong>No cards yet.</strong>
+                            <span>Generate a set to begin reviewing.</span>
+                        </div>
+                    )}
                 </Col>
             </Row>
         </Container>

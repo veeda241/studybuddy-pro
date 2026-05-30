@@ -13,53 +13,62 @@ const HomePage: React.FC = () => {
     const xpProgress = user ? (user.xp % 1000) / 10 : 0;
 
     return (
-        <Container fluid>
-            <div className="mb-4">
-                <h1>Welcome, {user?.username || 'Buddy'}!</h1>
-                <p className="lead">Here's your progress. Keep it up!</p>
+        <Container fluid className="page-wrap">
+            <div className="page-hero">
+                <div>
+                    <span className="eyebrow">Your learning command center</span>
+                    <h1>Welcome back, {user?.username || 'Buddy'}.</h1>
+                    <p>Track your momentum, start a focus sprint, or turn your notes into smarter revision.</p>
+                </div>
+                <div className="hero-meter">
+                    <span>Level</span>
+                    <strong>{xpLevel}</strong>
+                </div>
             </div>
 
-            <Row className="mb-4">
+            <Row className="g-3 mb-4">
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="metric-card">
                         <Card.Body>
-                            <Coin size={40} className="mb-2 text-warning" />
-                            <Card.Title>{user?.coins || 0}</Card.Title>
+                            <span className="metric-icon warning"><Coin /></span>
                             <Card.Text>Coins Earned</Card.Text>
+                            <Card.Title>{user?.coins || 0}</Card.Title>
                         </Card.Body>
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="metric-card">
                         <Card.Body>
-                            <Star size={40} className="mb-2 text-info" />
-                            <Card.Title>{user?.xp || 0}</Card.Title>
+                            <span className="metric-icon info"><Star /></span>
                             <Card.Text>Experience Points</Card.Text>
+                            <Card.Title>{user?.xp || 0}</Card.Title>
                         </Card.Body>
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="metric-card">
                         <Card.Body>
-                            <Fire size={40} className="mb-2 text-danger" />
-                            <Card.Title>{user?.streak || 0} Day</Card.Title>
+                            <span className="metric-icon danger"><Fire /></span>
                             <Card.Text>Study Streak</Card.Text>
+                            <Card.Title>{user?.streak || 0} Day</Card.Title>
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
 
-            <div className="mb-4">
-                <h4>Level {xpLevel}</h4>
+            <div className="level-panel mb-4">
+                <div>
+                    <h4>Level {xpLevel}</h4>
+                    <p>{xpForNextLevel} XP to next level</p>
+                </div>
                 <ProgressBar now={xpProgress} label={`${xpProgress}%`} />
-                <p className="text-muted mt-1">{xpForNextLevel} XP to next level</p>
             </div>
 
-            <Row>
+            <Row className="g-3">
                  <Col md={4}>
-                    <Card as={Link} to="/focus" className="text-decoration-none h-100">
-                        <Card.Body className="text-center">
-                            <Bullseye size={48} className="mb-3" />
+                    <Card as={Link} to="/focus" className="feature-card">
+                        <Card.Body>
+                            <span className="feature-icon"><Bullseye /></span>
                             <Card.Title>Focus Mode</Card.Title>
                             <Card.Text>
                                 Your space for productivity with a Pomodoro timer and task manager.
@@ -68,9 +77,9 @@ const HomePage: React.FC = () => {
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card as={Link} to="/quizzes" className="text-decoration-none h-100">
-                        <Card.Body className="text-center">
-                            <CardList size={48} className="mb-3" />
+                    <Card as={Link} to="/quizzes" className="feature-card">
+                        <Card.Body>
+                            <span className="feature-icon"><CardList /></span>
                             <Card.Title>Smart Quizzes</Card.Title>
                             <Card.Text>
                                 Generate quizzes from your notes to test your knowledge.
@@ -79,9 +88,9 @@ const HomePage: React.FC = () => {
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card as={Link} to="/flashcards" className="text-decoration-none h-100">
-                        <Card.Body className="text-center">
-                            <JournalText size={48} className="mb-3" />
+                    <Card as={Link} to="/flashcards" className="feature-card">
+                        <Card.Body>
+                            <span className="feature-icon"><JournalText /></span>
                             <Card.Title>Flashcards</Card.Title>
                             <Card.Text>
                                 Create and review flashcards to reinforce your learning.

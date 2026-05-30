@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../api';
 
 interface NoteSummarizerProps {
     notes: string;
@@ -19,7 +20,7 @@ const NoteSummarizer: React.FC<NoteSummarizerProps> = ({ notes }) => {
             setLoading(true);
             setError('');
             try {
-                const response = await fetch('/api/summarize', {
+                const response = await apiFetch('/api/summarize', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -51,12 +52,12 @@ const NoteSummarizer: React.FC<NoteSummarizerProps> = ({ notes }) => {
     }, [notes]);
 
     return (
-        <div>
-            <h4>Summary</h4>
+        <section className="summary-panel">
+            <span className="eyebrow">Summary</span>
             {loading && <p>Summarizing...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <p className="error-text">{error}</p>}
             {!loading && !error && <p>{summary}</p>}
-        </div>
+        </section>
     );
 };
 

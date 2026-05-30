@@ -1,6 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { House, Bullseye, CardList, JournalText, Gear, Sun, Moon, Coin, Mortarboard } from 'react-bootstrap-icons';
+import {
+    BoxArrowRight,
+    Bullseye,
+    CardList,
+    Coin,
+    Gear,
+    House,
+    JournalText,
+    Moon,
+    Mortarboard,
+    Sun,
+} from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -10,61 +21,62 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ toggleTheme }) => {
     const { user, logout } = useAuth();
 
+    const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+        `sidebar-link ${isActive ? 'active' : ''}`;
+
     return (
-        <div className="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style={{ width: '280px', height: '100vh' }}>
-            <NavLink to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-                <Mortarboard className="me-2" size={32} />
-                <span className="fs-4">StudyBuddy Pro</span>
+        <aside className="sidebar">
+            <NavLink to="/" className="brand-lockup">
+                <span className="brand-icon">
+                    <Mortarboard size={24} />
+                </span>
+                <span>
+                    <strong>StudyBuddy</strong>
+                    <small>Pro</small>
+                </span>
             </NavLink>
-            <hr />
-            <ul className="nav nav-pills flex-column mb-auto">
-                <li className="nav-item">
-                    <NavLink to="/" className="nav-link text-white" end>
-                        <House className="me-2" />
-                        Home
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink to="/focus" className="nav-link text-white">
-                        <Bullseye className="me-2" />
-                        Focus Mode
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink to="/quizzes" className="nav-link text-white">
-                        <CardList className="me-2" />
-                        Smart Quizzes
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink to="/flashcards" className="nav-link text-white">
-                        <JournalText className="me-2" />
-                        Flashcards
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink to="/settings" className="nav-link text-white">
-                        <Gear className="me-2" />
-                        Settings
-                    </NavLink>
-                </li>
-            </ul>
-            <hr />
-            <div className="dropdown">
+
+            <nav className="sidebar-nav">
+                <NavLink to="/" className={navLinkClass} end>
+                    <House />
+                    <span>Home</span>
+                </NavLink>
+                <NavLink to="/focus" className={navLinkClass}>
+                    <Bullseye />
+                    <span>Focus Mode</span>
+                </NavLink>
+                <NavLink to="/quizzes" className={navLinkClass}>
+                    <CardList />
+                    <span>Smart Quizzes</span>
+                </NavLink>
+                <NavLink to="/flashcards" className={navLinkClass}>
+                    <JournalText />
+                    <span>Flashcards</span>
+                </NavLink>
+                <NavLink to="/settings" className={navLinkClass}>
+                    <Gear />
+                    <span>Settings</span>
+                </NavLink>
+            </nav>
+
+            <div className="sidebar-footer">
                 {user && (
-                    <div className="text-center mb-3">
-                        <Coin className="me-2" />
+                    <div className="coin-balance">
+                        <Coin />
                         <span>{user.coins} Coins</span>
                     </div>
                 )}
-                <button className="btn btn-secondary w-100 mb-2" onClick={toggleTheme}>
-                    <Sun className="me-2" /> / <Moon className="ms-2" />
+                <button className="sidebar-action" onClick={toggleTheme} type="button">
+                    <Sun />
+                    <span>Theme</span>
+                    <Moon />
                 </button>
-                <button className="btn btn-danger w-100" onClick={logout}>
-                    Logout
+                <button className="sidebar-action danger" onClick={logout} type="button">
+                    <BoxArrowRight />
+                    <span>Logout</span>
                 </button>
             </div>
-        </div>
+        </aside>
     );
 };
 

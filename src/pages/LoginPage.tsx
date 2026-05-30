@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
 import { Mortarboard } from 'react-bootstrap-icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../api';
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -16,7 +17,7 @@ const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            const response = await fetch('/api/login', {
+            const response = await apiFetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,14 +40,14 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-            <Card style={{ width: '400px' }}>
+        <Container className="auth-page">
+            <Card className="auth-card">
                 <Card.Body>
                     <div className="text-center mb-4">
-                        <Mortarboard size={40} />
-                        <h1 className="mt-2">StudyBuddy Pro</h1>
+                        <span className="auth-icon"><Mortarboard size={34} /></span>
+                        <h1 className="mt-3">StudyBuddy Pro</h1>
+                        <p className="text-muted">Sign in to continue your study streak.</p>
                     </div>
-                    <h2 className="text-center mb-4">Login</h2>
                     {error && <Alert variant="danger">{error}</Alert>}
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3" controlId="username">
@@ -76,7 +77,7 @@ const LoginPage: React.FC = () => {
                         </Button>
                     </Form>
                     <p className="text-center mt-3">
-                        Don't have an account? <a href="/signup">Sign Up</a>
+                        Don't have an account? <Link to="/signup">Sign Up</Link>
                     </p>
                 </Card.Body>
             </Card>

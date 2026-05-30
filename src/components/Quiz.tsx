@@ -31,23 +31,24 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
 
     const getBadge = () => {
         const percentage = (score / questions.length) * 100;
-        if (percentage >= 80) return '🥇 Gold';
-        if (percentage >= 50) return '🥈 Silver';
-        return '🥉 Bronze';
+        if (percentage >= 80) return 'Gold';
+        if (percentage >= 50) return 'Silver';
+        return 'Bronze';
     };
 
     if (showScore) {
         return (
-            <div>
-                <h3>Quiz Completed!</h3>
+            <section className="tool-panel result-panel">
+                <span className="eyebrow">Complete</span>
+                <h2>Quiz Completed</h2>
                 <p>Your score: {score} out of {questions.length}</p>
-                <p>Badge: {getBadge()}</p>
-            </div>
+                <strong>{getBadge()} Badge</strong>
+            </section>
         );
     }
 
     return (
-        <div>
+        <section className="quiz-panel">
             <Card>
                 <Card.Body>
                     <Card.Title>Question {currentQuestion + 1}/{questions.length}</Card.Title>
@@ -61,7 +62,7 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
                     </ListGroup>
                 </Card.Body>
             </Card>
-        </div>
+        </section>
     );
 };
 

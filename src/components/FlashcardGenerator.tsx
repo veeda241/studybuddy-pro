@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
+import { apiFetch } from '../api';
 
 interface FlashcardGeneratorProps {
     notes: string;
@@ -14,7 +15,7 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({ notes, onFlashc
         setLoading(true);
         setError('');
         try {
-            const response = await fetch('/api/flashcards', {
+            const response = await apiFetch('/api/flashcards', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -37,11 +38,11 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({ notes, onFlashc
     };
 
     return (
-        <div>
+        <div className="button-row">
             <Button onClick={generateFlashcards} disabled={!notes || loading}>
                 {loading ? 'Generating...' : 'Generate Flashcards from Notes'}
             </Button>
-            {error && <p style={{ color: 'red' }} className="mt-2">{error}</p>}
+            {error && <p className="error-text mt-2">{error}</p>}
         </div>
     );
 };
