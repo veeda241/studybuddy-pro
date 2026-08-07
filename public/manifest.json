@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "StudyBuddy Pro",
+  "name": "StudyBuddy Pro — Adaptive AI-Powered Learning Suite",
+  "description": "Offline quiz and flashcard generation from notes with local NLP and RAG, SM-2 spaced repetition, and a gamified Pomodoro timer.",
   "icons": [
     {
       "src": "favicon.ico",

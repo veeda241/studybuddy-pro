@@ -25,6 +25,34 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey';
 app.use(cors());
 app.use(express.json());
 
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : null;
+
+    if (!token) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, payload) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
+        req.user = payload;
+        next();
+    });
+};
+
+const publicUser = (user) => ({
+    id: user.id,
+    username: user.username,
+    coins: user.coins || 0,
+    xp: user.xp || 0,
+    streak: user.streak || 0,
+    lastCompletedDate: user.lastCompletedDate || null,
+});
+
 // --- DATABASE INITIALIZATION ---
 const db = new sqlite3.Database('./database.sqlite', (err) => {
     if (err) {
@@ -51,9 +79,10 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
 // --- AUTHENTICATION ROUTES ---
 
 app.post('/api/register', async (req, res) => {
-    const { username, password } = req.body;
+    const username = String(req.body?.username || '').trim();
+    const password = String(req.body?.password || '');
     if (!username || !password) {
-        return res.status(400).json({ message: 'Please enter all fields' });
+        return res.status(400).json({ message: 'Please enter both username and password' });
     }
 
     try {
@@ -62,15 +91,15 @@ app.post('/api/register', async (req, res) => {
         db.run(sql, [username, hashedPassword], function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE')) {
-                    return res.status(400).json({ message: 'User already exists' });
+                    return res.status(400).json({ message: 'Username already taken. Try logging in instead.' });
                 }
                 return res.status(500).json({ message: 'Server error during registration' });
             }
             const userId = this.lastID;
-            const token = jwt.sign({ id: userId, username }, JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ id: userId, username }, JWT_SECRET, { expiresIn: '24h' });
             db.get('SELECT * FROM users WHERE id = ?', [userId], (err, user) => {
                  if (err || !user) return res.status(500).json({ message: 'Error fetching new user' });
-                 res.status(201).json({ message: 'User registered', token, user });
+                 res.status(201).json({ message: 'User registered', token, user: publicUser(user) });
             });
         });
     } catch (error) {
@@ -79,21 +108,26 @@ app.post('/api/register', async (req, res) => {
 });
 
 app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
+    const username = String(req.body?.username || '').trim();
+    const password = String(req.body?.password || '');
     if (!username || !password) {
-        return res.status(400).json({ message: 'Please enter all fields' });
+        return res.status(400).json({ message: 'Please enter both username and password' });
     }
 
     const sql = 'SELECT * FROM users WHERE username = ?';
     db.get(sql, [username], async (err, user) => {
         if (err) return res.status(500).json({ message: 'Server error' });
-        if (!user || !user.password) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!user || !user.password) {
+            return res.status(400).json({ message: 'Invalid username or password' });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid username or password' });
+        }
 
-        const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Logged in successfully', token, user });
+        const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+        res.status(200).json({ message: 'Logged in successfully', token, user: publicUser(user) });
     });
 });
 
@@ -114,8 +148,8 @@ app.post('/api/auth/google', async (req, res) => {
 
             if (user) {
                 // User exists, log them in
-                const jwtToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-                res.status(200).json({ message: 'Logged in successfully', token: jwtToken, user });
+                const jwtToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+                res.status(200).json({ message: 'Logged in successfully', token: jwtToken, user: publicUser(user) });
             } else {
                 // User does not exist, create a new one
                 const sql = 'INSERT INTO users (username, coins, xp, streak) VALUES (?, 0, 0, 0)';
@@ -124,12 +158,12 @@ app.post('/api/auth/google', async (req, res) => {
                         return res.status(500).json({ message: "Server error creating user." });
                     }
                     const userId = this.lastID;
-                    const jwtToken = jwt.sign({ id: userId, username }, JWT_SECRET, { expiresIn: '1h' });
+                    const jwtToken = jwt.sign({ id: userId, username }, JWT_SECRET, { expiresIn: '24h' });
                     db.get('SELECT * FROM users WHERE id = ?', [userId], (err, newUser) => {
                         if (err || !newUser) {
                             return res.status(500).json({ message: "Error fetching new user." });
                         }
-                        res.status(201).json({ message: 'User created and logged in', token: jwtToken, user: newUser });
+                        res.status(201).json({ message: 'User created and logged in', token: jwtToken, user: publicUser(newUser) });
                     });
                 });
             }
@@ -141,20 +175,27 @@ app.post('/api/auth/google', async (req, res) => {
 
 // --- GAMIFICATION ROUTES ---
 
-app.put('/api/user/gamification', (req, res) => {
-    const { userId, coins, xp } = req.body;
-    if (!userId) return res.status(400).json({ message: 'User ID is required' });
+app.put('/api/user/gamification', authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    const { coins, xp } = req.body;
 
     const sql = `UPDATE users SET coins = coins + ?, xp = xp + ? WHERE id = ?`;
     db.run(sql, [coins || 0, xp || 0, userId], function(err) {
         if (err) return res.status(500).json({ message: 'Server error' });
-        res.status(200).json({ message: 'User stats updated' });
+        db.get('SELECT coins, xp, streak FROM users WHERE id = ?', [userId], (fetchErr, row) => {
+            if (fetchErr || !row) return res.status(500).json({ message: 'Server error' });
+            res.status(200).json({
+                message: 'User stats updated',
+                coins: row.coins,
+                xp: row.xp,
+                streak: row.streak,
+            });
+        });
     });
 });
 
-app.post('/api/pomodoro/complete', (req, res) => {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ message: 'User ID is required' });
+app.post('/api/pomodoro/complete', authenticateToken, (req, res) => {
+    const userId = req.user.id;
 
     const sql = 'SELECT streak, lastCompletedDate FROM users WHERE id = ?';
     db.get(sql, [userId], (err, user) => {
@@ -177,14 +218,25 @@ app.post('/api/pomodoro/complete', (req, res) => {
         }
 
         const updateSql = 'UPDATE users SET coins = coins + 25, xp = xp + 50, streak = ?, lastCompletedDate = ? WHERE id = ?';
-        db.run(updateSql, [newStreak, today, userId], function(err) {
-            if (err) return res.status(500).json({ message: 'Server error' });
-            res.status(200).json({ message: 'Pomodoro completed!', coins: 25, xp: 50, streak: newStreak });
+        db.run(updateSql, [newStreak, today, userId], function(updateErr) {
+            if (updateErr) return res.status(500).json({ message: 'Server error' });
+            db.get('SELECT coins, xp, streak FROM users WHERE id = ?', [userId], (fetchErr, row) => {
+                if (fetchErr || !row) return res.status(500).json({ message: 'Server error' });
+                res.status(200).json({
+                    message: 'Pomodoro completed!',
+                    coins: row.coins,
+                    xp: row.xp,
+                    streak: row.streak,
+                    rewards: { coins: 25, xp: 50 },
+                });
+            });
         });
     });
 });
 
-// --- "SMARTER" OFFLINE CONTENT GENERATION ---
+// --- CONTENT GENERATION (Gemini Flash + local TF-IDF fallback) ---
+
+const gemini = require('./gemini');
 
 const stopWords = new Set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now']);
 
@@ -224,18 +276,29 @@ const makeKeywordOptions = (keywords, answer) => {
     return options.sort(() => 0.5 - Math.random());
 };
 
-app.post('/api/summarize', (req, res) => {
-    const { notes } = req.body;
-    if (!notes) return res.status(400).json({ message: 'Notes are required' });
+/** Lightweight retrieval: rank sentences by keyword overlap for Gemini context. */
+const retrieveContextChunks = (notes, topK = 8) => {
     const sentences = splitNotes(notes);
-    const summary = sentences.slice(0, 2).join(' ');
-    res.status(200).json({ content: summary });
-});
+    const keywords = getKeywords(notes, 10);
+    if (!sentences.length) return [];
 
-app.post('/api/flashcards', (req, res) => {
-    const { notes } = req.body;
-    if (!notes) return res.status(400).json({ message: 'Notes are required' });
+    return [...sentences]
+        .map((text) => {
+            const lower = text.toLowerCase();
+            const score = keywords.reduce((sum, kw) => sum + (lower.includes(kw) ? 1 : 0), 0);
+            return { text, score };
+        })
+        .sort((a, b) => b.score - a.score || b.text.length - a.text.length)
+        .slice(0, topK)
+        .map((item) => item.text);
+};
 
+const heuristicSummary = (notes) => {
+    const sentences = splitNotes(notes);
+    return { content: sentences.slice(0, 2).join(' '), provider: 'local', model: 'tfidf-heuristic' };
+};
+
+const heuristicFlashcards = (notes) => {
     const sentences = splitNotes(notes);
     const keywords = getKeywords(notes, Math.max(sentences.length, 5));
     const flashcards = [];
@@ -246,18 +309,15 @@ app.post('/api/flashcards', (req, res) => {
             flashcards.push({ question: `What is the significance of "${keyword}"?`, answer: sentence.trim() });
         }
     }
-    res.status(200).json(flashcards.slice(0, 10)); // Limit to 10 flashcards
-});
+    return { flashcards: flashcards.slice(0, 10), provider: 'local', model: 'tfidf-heuristic' };
+};
 
-app.post('/api/quiz', (req, res) => {
-    const { notes } = req.body;
-    if (!notes) return res.status(400).json({ message: 'Notes are required' });
-
+const heuristicQuiz = (notes) => {
     const sentences = splitNotes(notes);
     const keywords = getKeywords(notes, Math.max(sentences.length, 6));
 
     if (!sentences.length || !keywords.length) {
-        return res.status(400).json({ message: 'Add a little more detail so StudyBuddy can build questions.' });
+        return null;
     }
 
     const questions = [];
@@ -288,17 +348,75 @@ app.post('/api/quiz', (req, res) => {
         });
     }
 
-    if (!questions.length) {
-        return res.status(400).json({ message: 'Add a little more detail so StudyBuddy can build questions.' });
+    if (!questions.length) return null;
+    return { questions, provider: 'local', model: 'tfidf-heuristic' };
+};
+
+app.get('/api/ai/status', (req, res) => {
+    res.status(200).json({
+        geminiConfigured: gemini.isGeminiConfigured(),
+        model: gemini.MODEL_ID,
+    });
+});
+
+app.post('/api/summarize', async (req, res) => {
+    const { notes } = req.body;
+    if (!notes) return res.status(400).json({ message: 'Notes are required' });
+
+    const context = retrieveContextChunks(notes);
+    try {
+        const geminiResult = await gemini.generateSummary(notes, context);
+        if (geminiResult) return res.status(200).json(geminiResult);
+    } catch (err) {
+        console.error('Gemini summarize failed, using local fallback:', err.message);
     }
 
-    res.status(200).json(questions);
+    res.status(200).json(heuristicSummary(notes));
+});
+
+app.post('/api/flashcards', async (req, res) => {
+    const { notes } = req.body;
+    if (!notes) return res.status(400).json({ message: 'Notes are required' });
+
+    const context = retrieveContextChunks(notes);
+    try {
+        const geminiResult = await gemini.generateFlashcards(notes, context);
+        if (geminiResult) {
+            return res.status(200).json(geminiResult);
+        }
+    } catch (err) {
+        console.error('Gemini flashcards failed, using local fallback:', err.message);
+    }
+
+    res.status(200).json(heuristicFlashcards(notes));
+});
+
+app.post('/api/quiz', async (req, res) => {
+    const { notes } = req.body;
+    if (!notes) return res.status(400).json({ message: 'Notes are required' });
+
+    const context = retrieveContextChunks(notes);
+    try {
+        const geminiResult = await gemini.generateQuiz(notes, context);
+        if (geminiResult) return res.status(200).json(geminiResult);
+    } catch (err) {
+        console.error('Gemini quiz failed, using local fallback:', err.message);
+    }
+
+    const local = heuristicQuiz(notes);
+    if (!local) {
+        return res.status(400).json({ message: 'Add a little more detail so StudyBuddy can build questions.' });
+    }
+    res.status(200).json(local);
 });
 
 // --- USER SETTINGS ROUTES (JSON file-based) ---
 
-app.get('/api/settings/:userId', (req, res) => {
-    const { userId } = req.params;
+app.get('/api/settings/:userId', authenticateToken, (req, res) => {
+    const userId = String(req.user.id);
+    if (String(req.params.userId) !== userId) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
     const settingsPath = path.join(settingsDir, `${userId}.json`);
 
     if (fs.existsSync(settingsPath)) {
@@ -314,8 +432,11 @@ app.get('/api/settings/:userId', (req, res) => {
     }
 });
 
-app.post('/api/settings/:userId', (req, res) => {
-    const { userId } = req.params;
+app.post('/api/settings/:userId', authenticateToken, (req, res) => {
+    const userId = String(req.user.id);
+    if (String(req.params.userId) !== userId) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
     const settingsPath = path.join(settingsDir, `${userId}.json`);
     const settingsData = JSON.stringify(req.body, null, 2);
 

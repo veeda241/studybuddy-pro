@@ -36,19 +36,18 @@ const PomodoroTimer: React.FC = () => {
         try {
             const response = await apiFetch('/api/pomodoro/complete', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId: user.id }),
+                body: JSON.stringify({}),
             });
             const data = await response.json();
             if (response.ok) {
                 updateUser({
                     coins: data.coins,
                     xp: data.xp,
-                    streak: data.streak
+                    streak: data.streak,
                 });
-                alert('🎉 Great job! You earned 25 coins and 50 XP.');
+                const earnedCoins = data.rewards?.coins ?? 25;
+                const earnedXp = data.rewards?.xp ?? 50;
+                alert(`Great job! You earned ${earnedCoins} coins and ${earnedXp} XP.`);
             }
         } catch (error) {
             console.error("Failed to update user stats:", error);

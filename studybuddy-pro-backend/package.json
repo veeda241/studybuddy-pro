@@ -1,7 +1,7 @@
 {
   "name": "studybuddy-pro-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "StudyBuddy Pro API — JWT auth, SQLite user gamification (XP, coins, streaks), and legacy offline content generation endpoints.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,13 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "google-auth-library": "^10.3.0",
     "jsonwebtoken": "^9.0.2",
-    "sqlite3": "^5.1.7",
-    "serverless-http": "^3.2.0"
+    "serverless-http": "^3.2.0",
+    "sqlite3": "^5.1.7"
   }
 }

@@ -1,14 +1,12 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Define the structure of the User object
-interface User {
-    id: string;
+export interface User {
+    id: string | number;
     username: string;
     coins: number;
     xp: number;
     streak: number;
-    // Add any other user properties you expect from the backend
 }
 
 interface AuthContextType {
@@ -22,6 +20,14 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const toSafeUser = (newUser: User): User => ({
+    id: newUser.id,
+    username: newUser.username,
+    coins: newUser.coins || 0,
+    xp: newUser.xp || 0,
+    streak: newUser.streak || 0,
+});
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -43,10 +49,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     const login = (newUser: User, newToken: string) => {
+        const safeUser = toSafeUser(newUser);
+        // Write storage synchronously so ProtectedRoute sees the session immediately
         localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
+        localStorage.setItem('user', JSON.stringify(safeUser));
         setToken(newToken);
-        setUser(newUser);
+        setUser(safeUser);
     };
 
     const logout = () => {
@@ -54,15 +62,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem('user');
         setToken(null);
         setUser(null);
-        navigate('/login'); // Redirect to login page on logout
+        navigate('/login');
     };
 
     const updateUser = (updatedData: Partial<User>) => {
-        if (user) {
-            const newUserData = { ...user, ...updatedData };
-            setUser(newUserData);
+        setUser((current) => {
+            if (!current) return current;
+            const newUserData = { ...current, ...updatedData };
             localStorage.setItem('user', JSON.stringify(newUserData));
-        }
+            return newUserData;
+        });
     };
 
     const isAuthenticated = !!token && !!user;

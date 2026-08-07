@@ -9,36 +9,41 @@ const SignupPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
+        setLoading(true);
+
+        const trimmedUsername = username.trim();
+        if (!trimmedUsername || !password) {
+            setError('Please enter both username and password');
+            setLoading(false);
+            return;
+        }
 
         try {
             const response = await apiFetch('/api/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username: trimmedUsername, password }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                setSuccess(data.message || 'Registration successful!');
                 login(data.user, data.token);
-                navigate('/'); // Redirect to home page or dashboard
+                navigate('/', { replace: true });
             } else {
                 setError(data.message || 'Registration failed');
             }
         } catch (err) {
-            setError('Network error or server is not running.');
+            setError('Cannot reach the API. Is the backend running on port 5000?');
             console.error('Signup error:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -52,15 +57,15 @@ const SignupPage: React.FC = () => {
                         <p className="text-muted">Start tracking your focus, quizzes, and flashcards.</p>
                     </div>
                     {error && <Alert variant="danger">{error}</Alert>}
-                    {success && <Alert variant="success">{success}</Alert>}
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3" controlId="username">
                             <Form.Label>Username</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter username"
+                                placeholder="Choose a username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                autoComplete="username"
                                 required
                             />
                         </Form.Group>
@@ -72,12 +77,13 @@ const SignupPage: React.FC = () => {
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="new-password"
                                 required
                             />
                         </Form.Group>
 
-                        <Button variant="primary" type="submit" className="w-100">
-                            Sign Up
+                        <Button variant="primary" type="submit" className="w-100" disabled={loading}>
+                            {loading ? 'Creating account...' : 'Sign Up'}
                         </Button>
                     </Form>
                     <p className="text-center mt-3">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Col, Container, Row, ProgressBar } from 'react-bootstrap';
-import { Bullseye, CardList, JournalText, Coin, Star, Fire } from 'react-bootstrap-icons';
+import { Bullseye, CardList, ChatDots, JournalText, Coin, Star, Fire } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
@@ -65,7 +65,7 @@ const HomePage: React.FC = () => {
             </div>
 
             <Row className="g-3">
-                 <Col md={4}>
+                 <Col md={6} lg={3}>
                     <Card as={Link} to="/focus" className="feature-card">
                         <Card.Body>
                             <span className="feature-icon"><Bullseye /></span>
@@ -76,24 +76,35 @@ const HomePage: React.FC = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
+                <Col md={6} lg={3}>
                     <Card as={Link} to="/quizzes" className="feature-card">
                         <Card.Body>
                             <span className="feature-icon"><CardList /></span>
                             <Card.Title>Smart Quizzes</Card.Title>
                             <Card.Text>
-                                Generate quizzes from your notes to test your knowledge.
+                                Upload notes or paste text, then generate quizzes on-device.
                             </Card.Text>
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
+                <Col md={6} lg={3}>
                     <Card as={Link} to="/flashcards" className="feature-card">
                         <Card.Body>
                             <span className="feature-icon"><JournalText /></span>
                             <Card.Title>Flashcards</Card.Title>
                             <Card.Text>
                                 Create and review flashcards to reinforce your learning.
+                            </Card.Text>
+                        </Card.Body>
+                    </Card>
+                </Col>
+                <Col md={6} lg={3}>
+                    <Card as={Link} to="/chat" className="feature-card">
+                        <Card.Body>
+                            <span className="feature-icon"><ChatDots /></span>
+                            <Card.Title>Doubt Chat</Card.Title>
+                            <Card.Text>
+                                Ask questions about your uploaded notes and clear doubts instantly.
                             </Card.Text>
                         </Card.Body>
                     </Card>

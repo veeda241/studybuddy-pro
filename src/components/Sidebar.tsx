@@ -4,6 +4,7 @@ import {
     BoxArrowRight,
     Bullseye,
     CardList,
+    ChatDots,
     Coin,
     Gear,
     House,
@@ -52,6 +53,10 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleTheme }) => {
                 <NavLink to="/flashcards" className={navLinkClass}>
                     <JournalText />
                     <span>Flashcards</span>
+                </NavLink>
+                <NavLink to="/chat" className={navLinkClass}>
+                    <ChatDots />
+                    <span>Doubt Chat</span>
                 </NavLink>
                 <NavLink to="/settings" className={navLinkClass}>
                     <Gear />

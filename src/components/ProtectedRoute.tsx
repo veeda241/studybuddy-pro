@@ -7,13 +7,25 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
 
-    if (!isAuthenticated) {
-        // Redirect them to the /login page, but save the current location they were
-        // trying to go to when they were redirected. This allows us to send them
-        // along to that page after they login, which is a nicer user experience
-        // than dropping them off on the home page.
+    if (isLoading) {
+        return (
+            <div className="app-loading">
+                <div className="loading-card">
+                    <div className="loading-mark" />
+                    <span>Loading your workspace...</span>
+                </div>
+            </div>
+        );
+    }
+
+    // localStorage is written synchronously on login, so this covers the
+    // navigate-before-React-state-flush race after register/login.
+    const hasStoredSession =
+        !!localStorage.getItem('token') && !!localStorage.getItem('user');
+
+    if (!isAuthenticated && !hasStoredSession) {
         return <Navigate to="/login" replace />;
     }
 

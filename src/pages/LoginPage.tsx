@@ -9,33 +9,41 @@ const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
+
+        const trimmedUsername = username.trim();
+        if (!trimmedUsername || !password) {
+            setError('Please enter both username and password');
+            setLoading(false);
+            return;
+        }
 
         try {
             const response = await apiFetch('/api/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username: trimmedUsername, password }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 login(data.user, data.token);
-                navigate('/'); // Redirect to home page or dashboard
+                navigate('/', { replace: true });
             } else {
                 setError(data.message || 'Login failed');
             }
         } catch (err) {
-            setError('Network error or server is not running.');
+            setError('Cannot reach the API. Is the backend running on port 5000?');
             console.error('Login error:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -57,6 +65,7 @@ const LoginPage: React.FC = () => {
                                 placeholder="Enter username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                autoComplete="username"
                                 required
                             />
                         </Form.Group>
@@ -68,12 +77,13 @@ const LoginPage: React.FC = () => {
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="current-password"
                                 required
                             />
                         </Form.Group>
 
-                        <Button variant="primary" type="submit" className="w-100">
-                            Login
+                        <Button variant="primary" type="submit" className="w-100" disabled={loading}>
+                            {loading ? 'Signing in...' : 'Login'}
                         </Button>
                     </Form>
                     <p className="text-center mt-3">
